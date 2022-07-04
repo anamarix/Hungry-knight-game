@@ -103,18 +103,28 @@ class Game {
     this.world.scale.y = 3.1;
 
     this.healthBar = new PIXI.Container();
-    this.healthBar.position.set(this.app.view.width - 170, 10);
+    this.healthBar.position.set(this.app.view.width - 170, 30);
 
     //Create health bar
     const outerBar = new PIXI.Graphics();
     outerBar.beginFill(0xff3300);
-    outerBar.drawRect(0, 0, 130, 10);
+    outerBar.drawRect(0, 0, 130, 15);
     outerBar.endFill();
+    const hpStyle = new PIXI.TextStyle({
+      fontFamily: "Arial",
+      fontSize: 10,
+      fill: "white",
+    });
+    const hp = new PIXI.Text("H P", hpStyle);
+
 
     this.app.stage.addChild(this.world);
     this.app.stage.addChild(this.hero);
     this.app.stage.addChild(this.healthBar);
     this.healthBar.addChild(outerBar);
+    this.healthBar.addChild(hp)
+    this.healthBar.outer = outerBar;
+    hp.position.set(-20,0);
 
     this.hero.scale.x = 1.7;
     this.hero.scale.y = 1.7;
@@ -180,10 +190,10 @@ class Game {
       if (el.hit) {
         el.alpha = 0.0;
       }
-      //if the player missed the food shorten the health bar
+      //if the player missed the food shorten the health bar and check if the game has finished 
       if (el.y > 500 && !el.hit) {
-        if (!el.lost && this.healthBar.width > 0) {
-          this.healthBar.width -= 13;
+        if (!el.lost && this.healthBar.outer.width > 0) {
+          this.healthBar.outer.width -= 13;
         }
 
         el.alpha = 0.2;
@@ -203,6 +213,7 @@ class Game {
     const numberOfLost = sprites.filter((el) => el.lost === true);
     if (numberOfLost.length > 9) {
       this.message.alpha = 1.0;
+      this.healthBar.visible = false;
       this.world.visible = false;
       clearInterval(handler);
     }
