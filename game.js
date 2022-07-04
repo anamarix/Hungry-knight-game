@@ -22,7 +22,7 @@ let map = {
   ],
 };
 
- class Game {
+class Game {
   constructor() {
     this.app = new PIXI.Application({ width: 800, height: 600 });
     document.body.appendChild(this.app.view);
@@ -39,8 +39,7 @@ let map = {
   doneLoading(loader, resources) {
     this.app.view.focus();
 
-
-    // preparing player frames 
+    // preparing player frames
     let heroFrames = [];
     for (let i = 0; i < 8 * 5; i++) {
       let x = i % 8;
@@ -66,7 +65,6 @@ let map = {
         new PIXI.Rectangle(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE)
       );
     }
-
 
     // preparing background frames
     let backgroundTexture = [];
@@ -104,15 +102,26 @@ let map = {
     this.world.scale.x = 3.1;
     this.world.scale.y = 3.1;
 
+    this.healthBar = new PIXI.Container();
+    this.healthBar.position.set(this.app.view.width - 170, 10);
+
+    //Create health bar
+    const outerBar = new PIXI.Graphics();
+    outerBar.beginFill(0xff3300);
+    outerBar.drawRect(0, 0, 130, 10);
+    outerBar.endFill();
+
     this.app.stage.addChild(this.world);
     this.app.stage.addChild(this.hero);
+    this.app.stage.addChild(this.healthBar);
+    this.healthBar.addChild(outerBar);
+
     this.hero.scale.x = 1.7;
     this.hero.scale.y = 1.7;
     this.hero.play();
     this.hero.animationSpeed = 0.1;
     this.hero.x = this.app.view.width / 2;
     this.hero.y = 0;
-
 
     // preparing end game message
     const style = new PIXI.TextStyle({
@@ -131,8 +140,6 @@ let map = {
     this.message.alpha = 0.0;
     this.app.stage.addChild(this.message);
 
-
-
     this.app.ticker.add((delta) => {
       this.showPlayer();
     });
@@ -140,7 +147,7 @@ let map = {
     this.pushFood(foodFrames, this.app);
   }
 
-  // displaying player with animation 
+  // displaying player with animation
   showPlayer() {
     if (this.hero.y < 360) {
       this.hero.y += 8;
@@ -167,17 +174,21 @@ let map = {
     }, 2000);
   }
 
-
   //game logic
   startGame(sprites, handler) {
     sprites.forEach((el) => {
       if (el.hit) {
         el.alpha = 0.0;
       }
+      //if the player missed the food shorten the health bar
       if (el.y > 500 && !el.hit) {
+        if (!el.lost && this.healthBar.width > 0) {
+          this.healthBar.width -= 13;
+        }
+
         el.alpha = 0.2;
         el.lost = true;
-        this.checkIfLost(sprites,handler);
+        this.checkIfLost(sprites, handler);
       }
 
       el.y += 0.1;
@@ -187,9 +198,8 @@ let map = {
     });
   }
 
-
   // checking if player missed 10 items
-  checkIfLost(sprites,handler) {
+  checkIfLost(sprites, handler) {
     const numberOfLost = sprites.filter((el) => el.lost === true);
     if (numberOfLost.length > 9) {
       this.message.alpha = 1.0;
@@ -198,47 +208,35 @@ let map = {
     }
   }
 
-
   //checking if player hit the food item
   hitTestRectangle(r1, r2) {
-  
     let hit, combinedHalfWidths, combinedHalfHeights, vx, vy;
 
-    
     hit = false;
 
-   
     r1.centerX = r1.x + r1.width / 2;
     r1.centerY = r1.y + r1.height / 2;
     r2.centerX = r2.x + r2.width / 2;
     r2.centerY = r2.y + r2.height / 2;
 
-    
     r1.halfWidth = r1.width / 2;
     r1.halfHeight = r1.height / 2;
     r2.halfWidth = r2.width / 2;
     r2.halfHeight = r2.height / 2;
 
-    
     vx = r1.centerX - r2.centerX;
     vy = r1.centerY - r2.centerY;
 
-   
     combinedHalfWidths = r1.halfWidth + r2.halfWidth;
     combinedHalfHeights = r1.halfHeight + r2.halfHeight;
 
-   
     if (Math.abs(vx) < combinedHalfWidths) {
-      
       if (Math.abs(vy) < combinedHalfHeights) {
-      
         hit = true;
       } else {
-      
         hit = false;
       }
     } else {
-      
       hit = false;
     }
 
@@ -246,7 +244,9 @@ let map = {
   }
 }
 
- class Hero extends PIXI.AnimatedSprite {
+
+
+class Hero extends PIXI.AnimatedSprite {
   constructor(texture, frameRight, frameLeft) {
     super(texture);
     this.frameRight = frameRight;
@@ -258,7 +258,6 @@ let map = {
   move(e) {
     if (e.key === "ArrowUp") {
       if (this.y > 20) {
-
         this.y -= 80;
       } else {
         this.y = this.y;
@@ -266,7 +265,6 @@ let map = {
     } else if (e.key === "ArrowRight") {
       this.texture = this.frameRight;
       if (this.x < 700) {
- 
         this.x += 15;
       } else {
         this.y = this.y;
@@ -280,5 +278,4 @@ let map = {
   }
 }
 
-
-const game = new Game()
+const game = new Game();
